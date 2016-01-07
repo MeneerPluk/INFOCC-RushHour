@@ -43,10 +43,13 @@ namespace RushHourSolver
             AddNode(vehicleStartPos);
 
             // Do BFS
+            // ConcurrentQueue has no clear, so we need a different way to break the loop if a solution is found;
+            // a simple boolean works perfectly.
             bool goalFound = false;
             while (!goalFound && q.Count() > 0)
             {
-                //Parallel.ForEach<Tuple<byte[], Solution>>(q, (currentState) =>
+                // We considered a Parallel.ForEach loop, but since we can't clear a ConcurrentQueue, the lack of dequeue
+                // in that implementation made it either impossible or inefficient to handle with solutionless test cases.
                 Parallel.For(0, q.Count(), i =>
                 {
                     Tuple<byte[], Solution> currentState;
