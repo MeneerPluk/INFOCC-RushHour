@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace RushHourSolver
 {
@@ -31,7 +33,7 @@ namespace RushHourSolver
             ReadInput();
 
             // Initialize empty queue
-            Queue<Tuple<byte[], Solution>> q = new Queue<Tuple<byte[], Solution>>();
+            ConcurrentQueue<Tuple<byte[], Solution>> q = new ConcurrentQueue<Tuple<byte[], Solution>>();
 
             // By default, the solution is "no solution"
             foundSolution = new NoSolution();
@@ -41,25 +43,32 @@ namespace RushHourSolver
             AddNode(vehicleStartPos);
 
             // Do BFS
-            while (q.Count > 0)
+            bool goalFound = false;
+            while (!goalFound && q.Count() > 0)
             {
-                Tuple<byte[], Solution> currentState = q.Dequeue();
-
-                // Generate sucessors, and push them on to the queue if they haven't been seen before
-                foreach (Tuple<byte[], Solution> next in Successors(currentState))
+                //Parallel.ForEach<Tuple<byte[], Solution>>(q, (currentState) =>
+                Parallel.For(0, q.Count(), i =>
                 {
-                    // Did we reach the goal?
-                    if (next.Item1[targetVehicle] == goal)
+                    Tuple<byte[], Solution> currentState;
+                    if (q.TryDequeue(out currentState))
                     {
-                        q.Clear();
-                        foundSolution = next.Item2;
-                        break;
-                    }
+                        // Generate sucessors, and push them on to the queue if they haven't been seen before
+                        foreach (Tuple<byte[], Solution> next in Successors(currentState))
+                        {
+                            // Did we reach the goal?
+                            if (next.Item1[targetVehicle] == goal)
+                            {
+                                goalFound = true;
+                                foundSolution = next.Item2;
+                                break;
+                            }
 
-                    // If we haven't seen this node before, add it to the Trie and Queue to be expanded
-                    if (!AddNode(next.Item1))
-                        q.Enqueue(next);
-                }
+                            // If we haven't seen this node before, add it to the Trie and Queue to be expanded
+                            if (!AddNode(next.Item1))
+                                q.Enqueue(next);
+                        }
+                    }
+                });
             }
 
             Console.WriteLine(foundSolution);
