@@ -46,7 +46,7 @@ namespace RushHourSolver
                 Tuple<byte[], Solution> currentState = q.Dequeue();
 
                 // Generate sucessors, and push them on to the queue if they haven't been seen before
-                foreach (Tuple<byte[], Solution> next in Sucessors(currentState))
+                foreach (Tuple<byte[], Solution> next in Successors(currentState))
                 {
                     // Did we reach the goal?
                     if (next.Item1[targetVehicle] == goal)
@@ -67,7 +67,7 @@ namespace RushHourSolver
         }
 
         // Generates the sucessors of a state
-        private static IEnumerable<Tuple<byte[], Solution>> Sucessors(Tuple<byte[], Solution> state)
+        private static IEnumerable<Tuple<byte[], Solution>> Successors(Tuple<byte[], Solution> state)
         {
             byte[] currentState = state.Item1;
             Solution solution = state.Item2;
